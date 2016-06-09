@@ -12,6 +12,7 @@
 		61E73EAC1D07258900F0BF9E /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 61E73EAA1D07258900F0BF9E /* Main.storyboard */; };
 		61E73EAE1D07258900F0BF9E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 61E73EAD1D07258900F0BF9E /* Assets.xcassets */; };
 		61E73EB11D07258900F0BF9E /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 61E73EAF1D07258900F0BF9E /* LaunchScreen.storyboard */; };
+		61E73EBA1D08308100F0BF9E /* CalculatorBrain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61E73EB91D08308100F0BF9E /* CalculatorBrain.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -22,6 +23,7 @@
 		61E73EAD1D07258900F0BF9E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		61E73EB01D07258900F0BF9E /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		61E73EB21D07258900F0BF9E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		61E73EB91D08308100F0BF9E /* CalculatorBrain.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CalculatorBrain.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -54,14 +56,23 @@
 		61E73EA51D07258900F0BF9E /* Calculator */ = {
 			isa = PBXGroup;
 			children = (
-				61E73EA61D07258900F0BF9E /* AppDelegate.swift */,
+				61E73EB81D0726F600F0BF9E /* Supporting Files */,
 				61E73EA81D07258900F0BF9E /* ViewController.swift */,
+				61E73EB91D08308100F0BF9E /* CalculatorBrain.swift */,
 				61E73EAA1D07258900F0BF9E /* Main.storyboard */,
+			);
+			path = Calculator;
+			sourceTree = "<group>";
+		};
+		61E73EB81D0726F600F0BF9E /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				61E73EA61D07258900F0BF9E /* AppDelegate.swift */,
 				61E73EAD1D07258900F0BF9E /* Assets.xcassets */,
 				61E73EAF1D07258900F0BF9E /* LaunchScreen.storyboard */,
 				61E73EB21D07258900F0BF9E /* Info.plist */,
 			);
-			path = Calculator;
+			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -96,6 +107,7 @@
 				TargetAttributes = {
 					61E73EA21D07258900F0BF9E = {
 						CreatedOnToolsVersion = 7.3.1;
+						DevelopmentTeam = 4FE7U4H495;
 					};
 				};
 			};
@@ -135,6 +147,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				61E73EBA1D08308100F0BF9E /* CalculatorBrain.swift in Sources */,
 				61E73EA91D07258900F0BF9E /* ViewController.swift in Sources */,
 				61E73EA71D07258900F0BF9E /* AppDelegate.swift in Sources */,
 			);
@@ -251,10 +264,13 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				INFOPLIST_FILE = Calculator/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.sap.rig.Calculator;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 			};
 			name = Debug;
 		};
@@ -262,10 +278,13 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				INFOPLIST_FILE = Calculator/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.sap.rig.Calculator;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 			};
 			name = Release;
 		};
