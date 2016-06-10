@@ -45,7 +45,7 @@ class ViewController: UIViewController {
 
   private func flipDegRadIndicator(degMode: Bool) {
     degIndicator.textColor = degMode ? UIColor.blackColor() : UIColor.lightGrayColor()
-    radIndicator.textColor = degMode ? UIColor.blackColor() : UIColor.lightGrayColor()
+    radIndicator.textColor = degMode ? UIColor.lightGrayColor() : UIColor.blackColor()
   }
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
