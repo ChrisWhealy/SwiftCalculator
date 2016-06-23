@@ -22,21 +22,24 @@ func factorial(n: Double) -> Double {
 class CalculatorBrain {
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  // Struct for storing the operator and operand of a pending operation
+  // Struct for holding a pending binary operation
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  private struct pendingBinOpInfo {
+  private struct pendingBinaryOperation {
     var binFn: (Double, Double) -> Double
     var op1:   Double
   }
 
-  private var pending: pendingBinOpInfo?
-
+  private var pending: pendingBinaryOperation?
   private var accumulator = 0.0
+  private var memory      = 0.0
+
+  private var _prevOpIsUnary = false
+  private var _thisOpIsUnary = false
 
   // Operation types
   private enum Operation {
-    case Reset
-    case ClearLastOperand
+    case MemoryFunction
+    case Random
     case Constant(Double)
     case UnaryOperation((Double) -> Double)
     case BinaryOperation((Double, Double) -> Double)
@@ -44,35 +47,46 @@ class CalculatorBrain {
   }
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  // Tuple for remebering each step of the calculator's program
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  typealias ProgramStep = (operand   : Double,
+                           operatr   : String,
+                           inverse   : Bool,
+                           degreeMode: Bool,
+                           isUnary   : Bool)
+
+  private var internalProgram = [ProgramStep]()
+
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   // Functions this calculator can perform
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  private var operations: Dictionary<String, Operation> = [
+  private let operations: Dictionary<String, Operation> = [
     // Operations and their inverses.  Some operations have no inverse
     // OPerations for resetting or completing a calculation
-    "AC"         : Operation.Reset,
-    "inv_AC"     : Operation.Reset,
-    "C"          : Operation.ClearLastOperand,
-    "inv_C"      : Operation.ClearLastOperand,
     "="          : Operation.Equals,
     "inv_="      : Operation.Equals,
+
+    // Memory functions
+    "M+"         : Operation.MemoryFunction,
+    "inv_M+"     : Operation.MemoryFunction,
+    "MR"         : Operation.MemoryFunction,
+    "inv_MR"     : Operation.MemoryFunction,
 
     // Mathematical constants
     "π"          : Operation.Constant(M_PI),
     "inv_π"      : Operation.Constant(M_PI),
     "e"          : Operation.Constant(M_E),
     "inv_e"      : Operation.Constant(M_E),
+    "Rnd"        : Operation.Random,
+    "inv_Rnd"    : Operation.Random,
 
     // Basic operations such as square root, exponentiation, logs and factorial
     "±"          : Operation.UnaryOperation({ -$0 }),
     "inv_±"      : Operation.UnaryOperation({ -$0 }),
     "√"          : Operation.UnaryOperation(sqrt),
-    "inv_√"      : Operation.UnaryOperation(sqrt),
-    "x!"         : Operation.UnaryOperation(factorial),
-    "inv_x!"     : Operation.UnaryOperation(factorial),
-    "x^2"        : Operation.UnaryOperation({ $0 * $0 }),
-    "inv_x^2"    : Operation.UnaryOperation({ $0 * $0 }),
+    "inv_√"      : Operation.UnaryOperation({ $0 * $0 }),
     "1/x"        : Operation.UnaryOperation({ 1 / $0 }),
-    "inv_1/x"    : Operation.UnaryOperation({ 1 / $0 }),
+    "inv_1/x"    : Operation.UnaryOperation(factorial),
     "log"        : Operation.UnaryOperation(log10),
     "inv_log"    : Operation.UnaryOperation(__exp10),
     "ln"         : Operation.UnaryOperation(log),
@@ -105,6 +119,9 @@ class CalculatorBrain {
     "inv_÷"      : Operation.BinaryOperation({ pow($0,(1/$1)) })
   ]
 
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  // Complete a pending binary operation
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   private func executePendingBinaryOperation() {
     if pending != nil {
       accumulator = pending!.binFn(pending!.op1, accumulator)
@@ -113,42 +130,107 @@ class CalculatorBrain {
   }
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  // Public API
+  // Add or remove the current accumulator value to/from memory
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  func setOperand(operand: Double) { accumulator = operand }
+  private func handleMemory(opCode: String) {
+    switch opCode {
+      case "MR"     : accumulator = memory
+      case "inv_MR" : memory = accumulator
+      case "M+"     : memory += accumulator
+      case "inv_M+" : memory -= accumulator
+
+      default : break
+    }
+  }
+
+  // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+  // Public API
+  // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+  var program: [ProgramStep] {
+    get { return internalProgram }
+    set {
+      resetBrain()
+
+      for pgmStep in newValue {
+        if pgmStep.operatr != "" {
+          performOperation(pgmStep.operatr, inv: pgmStep.inverse, degMode: pgmStep.degreeMode)
+        }
+        else {
+          setOperand(pgmStep.operand)
+        }
+      }
+    }
+  }
+
+  func setOperand(op: Double) {
+    print("Brain received operand \(op)")
+    accumulator = op
+    internalProgram.append((op, "", false, true, false))
+  }
+
+  func clearLastOp() {
+    if pending != nil {
+      accumulator = 0.0
+    }
+
+    internalProgram.removeLast()
+  }
+
+  func resetBrain() {
+    pending         = nil
+    _prevOpIsUnary  = false
+    _thisOpIsUnary  = false
+    accumulator     = 0.0
+    internalProgram = []
+  }
 
   func performOperation(keyValue: String, inv: Bool, degMode: Bool) {
-    let opCode = (inv ? "inv_" : "") + keyValue +
+    // Combine the name of the key pressed together with the states of the inverse and degree
+    // mode indicators to derive the exact op code to be performed
+    let opCode = (inv ? "inv_" : "") +
+                 keyValue +
                  (["sin","cos","tan"].indexOf(keyValue) != nil ? (degMode ? "Deg" : "Rad") : "")
 
-    print("Looking up opcode = \(opCode)")
+    print("Invoking opcode = \(opCode)")
 
     if let operation = operations[opCode] {
       switch operation {
-        case .Reset:
-          accumulator = 0.0; pending = nil
+        case .MemoryFunction          : handleMemory(opCode)
+        case .Constant(let val)       : accumulator = val
+        case .Random                  : accumulator = drand48()
 
-        case .ClearLastOperand:
-          accumulator = 0.0
+        case .Equals                  :
+          executePendingBinaryOperation()
+          _prevOpIsUnary = _thisOpIsUnary
+          _thisOpIsUnary = false
 
-        case .Constant(let val):
-          accumulator = val
-
-        case .UnaryOperation(let fn):
+        case .UnaryOperation(let fn)  :
           accumulator = fn(accumulator)
+          _prevOpIsUnary = _thisOpIsUnary
+          _thisOpIsUnary = true
 
-        case .BinaryOperation(let fn):
+        case .BinaryOperation(let fn) :
           executePendingBinaryOperation()
-          pending = pendingBinOpInfo(binFn: fn, op1: accumulator)
-
-        case .Equals:
-          executePendingBinaryOperation()
+          pending = pendingBinaryOperation(binFn: fn, op1: accumulator)
+          _prevOpIsUnary = _thisOpIsUnary
+          _thisOpIsUnary = false
       }
     }
 
+    internalProgram.append((0.0, keyValue, inv, degMode, _prevOpIsUnary))
+//    print(internalProgram)
   }
 
-  var result: Double { get { return accumulator } }
+  var result:          Double { get { return accumulator } }
+  var memHasContents:  Bool   { get { return memory != 0.0 } }
+  var isPartialResult: Bool   { get { return pending != nil } }
+  var prevOpIsUnary:   Bool   { get { return _prevOpIsUnary } }
+  var thisOpIsUnary:   Bool   { get { return _thisOpIsUnary } }
 }
+
+
+
+
+
 
 
