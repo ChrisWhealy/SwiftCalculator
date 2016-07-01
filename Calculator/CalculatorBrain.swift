@@ -20,6 +20,23 @@ func factorial(n: Double) -> Double {
 // Here's the brain
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 class CalculatorBrain {
+  typealias UnaryFunction  = (Double) -> Double
+  typealias BinaryFunction = (Double, Double) -> Double
+
+  private func unaryOperation(unaryFn: UnaryFunction) -> (Double) -> Double {
+    return {(val: Double) -> Double in
+      return unaryFn(val)
+    }
+  }
+
+  private func binaryOperation(binaryFn: BinaryFunction) -> (Double) -> (Double) -> Double {
+    return {(val1: Double) -> (Double) -> Double in
+      return {(val2: Double) -> Double in
+        binaryFn(val1,val2)
+      }
+    }
+  }
+
 
   // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   // Struct for holding a pending binary operation
@@ -227,6 +244,9 @@ class CalculatorBrain {
   var prevOpIsUnary:   Bool   { get { return _prevOpIsUnary } }
   var thisOpIsUnary:   Bool   { get { return _thisOpIsUnary } }
 }
+
+
+
 
 
 
